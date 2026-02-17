@@ -14,6 +14,8 @@ import MapView from './pages/MapView';
 import AdminCreateUser from './pages/AdminCreateUser';
 import AdminVerifyResidents from './pages/AdminVerifyResidents';
 import AdminManageSoundAlerts from './pages/AdminManageSoundAlerts';
+import AdminManageAccounts from './pages/AdminManageAccounts';
+import Landing from './pages/Landing';
 import './styles/main.css';
 
 function App() {
@@ -113,9 +115,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/accounts"
+            element={
+              <ProtectedRoute allowedRoles={['super_admin']}>
+                <AdminManageAccounts />
+              </ProtectedRoute>
+            }
+          />
           
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

@@ -195,23 +195,79 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Admin Badge */}
+        {/* Super Admin: Key highlights */}
         {isSuperAdmin && (
-          <div className="section-modern" style={{ marginBottom: '1.5rem', padding: '1rem', background: 'linear-gradient(135deg, rgba(4, 70, 167, 0.1) 0%, rgba(23, 103, 12, 0.1) 100%)', border: '1px solid rgba(4, 70, 167, 0.3)', borderRadius: 'var(--radius-lg)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--primary)' }}>
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Super Administrator</h3>
-                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)' }}>System-wide access • All municipalities</p>
-              </div>
+          <div className="section-modern super-admin-highlights" style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Super Admin — Key areas
+            </h3>
+            <div className="super-admin-cards">
+              <button type="button" onClick={() => navigate('/admin/create-user')} className="super-admin-card">
+                <span className="super-admin-card-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                  </svg>
+                </span>
+                <span className="super-admin-card-label">Account Creation</span>
+              </button>
+              <button type="button" onClick={() => navigate('/admin/accounts')} className="super-admin-card">
+                <span className="super-admin-card-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </span>
+                <span className="super-admin-card-label">Account Management</span>
+              </button>
+              <button type="button" onClick={() => navigate('/map')} className="super-admin-card">
+                <span className="super-admin-card-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                    <line x1="8" y1="2" x2="8" y2="18"/>
+                    <line x1="16" y1="6" x2="16" y2="22"/>
+                  </svg>
+                </span>
+                <span className="super-admin-card-label">Map View</span>
+              </button>
+              <button type="button" onClick={() => document.getElementById('dashboard-stats')?.scrollIntoView({ behavior: 'smooth' })} className="super-admin-card">
+                <span className="super-admin-card-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </span>
+                <span className="super-admin-card-label">Dashboard Analytics</span>
+              </button>
+              <button type="button" onClick={() => navigate('/admin/verify-residents')} className="super-admin-card">
+                <span className="super-admin-card-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 12l2 2 4-4"/>
+                    <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                    <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                  </svg>
+                </span>
+                <span className="super-admin-card-label">Resident Verification</span>
+              </button>
+              <button type="button" onClick={() => navigate('/admin/sound-alerts')} className="super-admin-card">
+                <span className="super-admin-card-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                  </svg>
+                </span>
+                <span className="super-admin-card-label">Sound Alert Management</span>
+              </button>
             </div>
           </div>
         )}
 
         {/* Stats Grid */}
-        <div className="stats-grid-modern">
+        <div id="dashboard-stats" className="stats-grid-modern">
           <div className="stat-card-modern stat-primary">
             <div className="stat-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

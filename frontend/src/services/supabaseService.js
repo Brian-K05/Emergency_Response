@@ -497,5 +497,41 @@ export const supabaseService = {
       )
       .subscribe();
   },
+
+  // Super admin: get all users for account management (monitoring only)
+  getUsersForAdmin: async (filters = {}) => {
+    let query = supabase
+      .from('users')
+      .select(`
+        id,
+        username,
+        email,
+        full_name,
+        role,
+        phone_number,
+        municipality_id,
+        barangay_id,
+        is_active,
+        verification_status,
+        created_at,
+        municipality:municipalities(id, name),
+        barangay:barangays(id, name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (filters.role) {
+      query = query.eq('role', filters.role);
+    }
+    if (filters.municipality_id) {
+      query = query.eq('municipality_id', filters.municipality_id);
+    }
+    if (filters.is_active !== undefined && filters.is_active !== '') {
+      query = query.eq('is_active', filters.is_active === true || filters.is_active === 'true');
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
 };
 

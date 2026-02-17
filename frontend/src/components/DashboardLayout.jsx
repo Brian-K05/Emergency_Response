@@ -310,18 +310,68 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
             </svg>
             <span>View Incidents</span>
           </button>
+          {/* Super Admin: key areas in order — Map, Account Creation, Account Management, Resident Verification, Sound Alerts */}
           {user?.role === 'super_admin' && (
-            <button 
-              onClick={() => navigate('/admin/sound-alerts')} 
-              className={`nav-item ${isActive('/admin/sound-alerts') ? 'active' : ''}`}
-              title="Manage Sound Alerts"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 5L6 9H2v6h4l5 4V5z"/>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-              </svg>
-              <span>Sound Alerts</span>
-            </button>
+            <>
+              <button 
+                onClick={() => navigate('/map')} 
+                className={`nav-item ${isActive('/map') ? 'active' : ''}`}
+                title="Map view of municipalities scope"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                  <line x1="8" y1="2" x2="8" y2="18"/>
+                  <line x1="16" y1="6" x2="16" y2="22"/>
+                </svg>
+                <span>Map View</span>
+              </button>
+              <button 
+                onClick={() => navigate('/admin/create-user')} 
+                className={`nav-item ${isActive('/admin/create-user') ? 'active' : ''}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="8.5" cy="7" r="4"/>
+                  <line x1="20" y1="8" x2="20" y2="14"/>
+                  <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+                <span>Account Creation</span>
+              </button>
+              <button 
+                onClick={() => navigate('/admin/accounts')} 
+                className={`nav-item ${isActive('/admin/accounts') ? 'active' : ''}`}
+                title="View and monitor all accounts"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Account Management</span>
+              </button>
+              <button 
+                onClick={() => navigate('/admin/verify-residents')} 
+                className={`nav-item ${isActive('/admin/verify-residents') ? 'active' : ''}`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 12l2 2 4-4"/>
+                  <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                  <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                </svg>
+                <span>Resident Verification</span>
+              </button>
+              <button 
+                onClick={() => navigate('/admin/sound-alerts')} 
+                className={`nav-item ${isActive('/admin/sound-alerts') ? 'active' : ''}`}
+                title="Manage Sound Alerts"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
+                <span>Sound Alerts</span>
+              </button>
+            </>
           )}
           <button 
             onClick={() => navigate('/notifications')} 
@@ -333,7 +383,8 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
             </svg>
             <span>Notifications</span>
           </button>
-          {(user?.role === 'super_admin' || user?.role === 'municipal_admin' || user?.role === 'admin') && (
+          {/* Create User & Verify Residents — municipal_admin and admin (not super_admin; they have their own block above) */}
+          {(user?.role === 'municipal_admin' || user?.role === 'admin') && (
             <>
               <button 
                 onClick={() => navigate('/admin/create-user')} 
@@ -360,7 +411,8 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
               </button>
             </>
           )}
-          {(user?.role === 'admin' || user?.role === 'mdrrmo' || user?.role === 'super_admin' || user?.role === 'municipal_admin') && (
+          {/* Map View — for municipal_admin, admin, mdrrmo (super_admin has it in block above) */}
+          {(user?.role === 'admin' || user?.role === 'mdrrmo' || user?.role === 'municipal_admin') && (
             <button 
               onClick={() => navigate('/map')} 
               className={`nav-item ${isActive('/map') ? 'active' : ''}`}
