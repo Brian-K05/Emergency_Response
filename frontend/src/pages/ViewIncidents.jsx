@@ -6,7 +6,8 @@ import DashboardLayout from '../components/DashboardLayout';
 import IncidentDetailsModal from '../components/IncidentDetailsModal';
 
 const ViewIncidents = () => {
-  const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
+  const _nav = useNavigate();
   const { user } = useAuth();
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +68,7 @@ const ViewIncidents = () => {
       }
       clearInterval(interval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   useEffect(() => {

@@ -53,7 +53,7 @@ export const soundAlertsService = {
     const fileName = `${alertType}_${Date.now()}.${fileExt}`;
     const filePath = `${alertType}/${fileName}`;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('sound-alerts')
       .upload(filePath, file, {
         cacheControl: '3600',

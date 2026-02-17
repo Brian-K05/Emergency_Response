@@ -34,43 +34,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
     // Load sound configurations on mount
     soundAlert.loadSoundConfigs();
 
-    // Track processed notification IDs to avoid duplicate sounds
-    const processedNotificationIds = new Set();
-
-    // Function to play sound for a notification
-    const playSoundForNotification = (notification) => {
-      // Skip if already processed
-      if (processedNotificationIds.has(notification.id)) {
-        return;
-      }
-      processedNotificationIds.add(notification.id);
-
-      console.log('🔔 Playing sound for notification:', {
-        id: notification.id,
-        type: notification.notification_type,
-        title: notification.title,
-        userRole: user.role
-      });
-
-      // Play sound based on notification type
-      if (notification.notification_type === 'incident_assigned' || 
-          notification.notification_type === 'team_assigned') {
-        // Team assignment alert
-        soundAlert.playAssignmentAlert();
-      } else if (notification.notification_type === 'escalation_request') {
-        // Escalation alert (barangay requesting help)
-        soundAlert.playEscalationAlert();
-      } else if (notification.notification_type === 'new_incident' || 
-                 notification.notification_type === 'incident_reported') {
-        // New incident alert
-        console.log('🚨 Playing emergency alert for new incident');
-        soundAlert.playEmergencyAlert();
-      } else {
-        // Default alert for other notifications
-        console.log('🔔 Playing default emergency alert');
-        soundAlert.playEmergencyAlert();
-      }
-    };
+    // Sound for notifications is handled by incident subscription below (checkAndPlayAlert)
 
     // Check for existing unread notifications on mount (in case user just logged in)
     // BUT don't play sounds - the incident subscription handles all sound alerts
@@ -263,6 +227,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
         clearInterval(pollingInterval);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, user?.role]);
 
   const isActive = (path) => {

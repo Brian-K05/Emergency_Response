@@ -1,22 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { statisticsService } from '../services/statisticsService';
-import { useAuth } from '../context/AuthContext';
-
 /* Northern Samar theme: blue, yellow, red, green, orange, beige */
 const COLORS = ['#0446A7', '#FFD701', '#F63224', '#17670C', '#FF6A00', '#BC9678'];
 
 const DashboardCharts = ({ barangayId, municipalityId, userRole }) => {
-  const { user } = useAuth();
   const [barangayStats, setBarangayStats] = useState([]);
   const [municipalStats, setMunicipalStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBarangay, setSelectedBarangay] = useState(null);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchStats();
-  }, [barangayId, municipalityId, userRole]);
 
   const fetchStats = async () => {
     try {
@@ -44,6 +37,11 @@ const DashboardCharts = ({ barangayId, municipalityId, userRole }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [barangayId, municipalityId, userRole]);
 
   const selectedBarangayData = useMemo(() => {
     if (!selectedBarangay || !Array.isArray(municipalStats) || municipalStats.length === 0) {

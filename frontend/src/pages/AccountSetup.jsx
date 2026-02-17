@@ -84,6 +84,7 @@ const AccountSetup = () => {
       isMounted = false;
       if (fetchTimeout) clearTimeout(fetchTimeout);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   useEffect(() => {

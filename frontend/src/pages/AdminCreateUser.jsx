@@ -50,6 +50,7 @@ const AdminCreateUser = () => {
     if (user?.municipality_id && isMunicipalAdmin) {
       setFormData(prev => ({ ...prev, municipality_id: user.municipality_id }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isSuperAdmin, isMunicipalAdmin]);
 
   // Fetch barangays when municipality changes
@@ -236,7 +237,7 @@ const AdminCreateUser = () => {
       };
 
       // Try using the admin_create_user_profile function
-      const { data: profileResult, error: profileError } = await supabase.rpc('admin_create_user_profile', {
+      const { error: profileError } = await supabase.rpc('admin_create_user_profile', {
         new_user_id: authData.user.id,
         user_username: profileData.username,
         user_email: profileData.email,
@@ -250,7 +251,7 @@ const AdminCreateUser = () => {
 
       if (profileError) {
         // If RPC fails, try direct insert (might work if policies allow)
-        const { data: directInsert, error: directError } = await supabase
+        const { error: directError } = await supabase
           .from('users')
           .insert({
             id: authData.user.id,

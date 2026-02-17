@@ -7,7 +7,8 @@ import IncidentDetailsModal from '../components/IncidentDetailsModal';
 import soundAlert from '../utils/soundAlert';
 
 const Notifications = () => {
-  const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
+  const _nav = useNavigate();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,7 @@ const Notifications = () => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   // Subscribe to real-time notifications (NO SOUNDS - DashboardLayout handles all sounds globally)
@@ -48,6 +50,7 @@ const Notifications = () => {
         subscription.unsubscribe();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const fetchNotifications = async () => {

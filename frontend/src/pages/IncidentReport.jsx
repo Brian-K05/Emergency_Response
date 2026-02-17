@@ -18,8 +18,8 @@ const IncidentReport = ({ onSuccess, onCancel }) => {
     urgency_level: 'high', // Default to high for faster response
     contact_number: user?.phone_number || '',
   });
-  const [municipalities, setMunicipalities] = useState([]);
-  const [barangays, setBarangays] = useState([]);
+  const [, setMunicipalities] = useState([]);
+  const [, setBarangays] = useState([]);
   const [userBarangay, setUserBarangay] = useState(null);
   const [userMunicipality, setUserMunicipality] = useState(null);
   const [mediaFiles, setMediaFiles] = useState([]);

@@ -49,6 +49,7 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
         console.warn('Could not mark incident as viewed:', e);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, incidentId, user?.id]);
 
   // Removed responder fetching - MDRRMO calls teams directly

@@ -21,8 +21,6 @@ const Dashboard = () => {
   const [showIncidentModal, setShowIncidentModal] = useState(false);
   
   const isSuperAdmin = user?.role === 'super_admin';
-  const isMunicipalAdmin = user?.role === 'municipal_admin';
-  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     // Initial fetch (show loading only on first load)
@@ -80,6 +78,7 @@ const Dashboard = () => {
       }
       clearInterval(interval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, user?.role]); // Re-subscribe if user changes
 
   const fetchIncidents = async (showLoading = false) => {
@@ -105,7 +104,6 @@ const Dashboard = () => {
       setIncidents(prevIncidents => {
         // Check if there are actual changes
         const prevIds = new Set(prevIncidents.map(i => i.id));
-        const newIds = new Set(limitedData.map(i => i.id));
         
         // Check for new incidents (ones not in previous list)
         const hasNewIncidents = limitedData.some(inc => !prevIds.has(inc.id));

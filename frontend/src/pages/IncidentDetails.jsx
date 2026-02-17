@@ -51,6 +51,7 @@ const IncidentDetails = () => {
         console.warn('Could not mark incident as viewed:', e);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.id]);
 
   useEffect(() => {
@@ -239,7 +240,7 @@ const IncidentDetails = () => {
       setError('');
       
       // Call the escalation function (updated parameter name)
-      const { data, error: rpcError } = await supabase.rpc('request_municipal_assistance', {
+      const { error: rpcError } = await supabase.rpc('request_municipal_assistance', {
         p_incident_id: parseInt(id),
         p_escalated_by: user.id,
         p_reason: updateMessage
