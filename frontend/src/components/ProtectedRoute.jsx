@@ -10,7 +10,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const redirectTimeoutRef = useRef(null);
 
   // Check if profile setup is complete (required fields: phone_number and municipality_id)
-  // Super admin doesn't need municipality_id, only phone_number
+  // Super admin never needs profile setup - always considered complete
   const isAccountSetupPage = location.pathname === '/account/setup';
   const isSuperAdmin = user?.role === 'super_admin';
   
@@ -22,17 +22,15 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     (typeof user.municipality_id === 'number' ? user.municipality_id > 0 : 
      typeof user.municipality_id === 'string' ? user.municipality_id.trim() !== '' : false);
   
-  // Super admin only needs phone_number, regular users need both phone_number and municipality_id
+  // Super admin never needs account setup; other users need phone_number + municipality_id
   const isProfileComplete = isSuperAdmin 
-    ? hasPhoneNumber 
+    ? true 
     : (hasPhoneNumber && hasMunicipality);
 
   // If profile appears incomplete, check if we have a cached complete profile
-  // This prevents redirect loops when profile fetch temporarily fails
-  // For super admin, only check phone_number; for others, check both
   const cachedIsSuperAdmin = lastCompleteProfileRef.current?.role === 'super_admin';
   const hasCachedCompleteProfile = cachedIsSuperAdmin
-    ? lastCompleteProfileRef.current?.phone_number
+    ? true
     : (lastCompleteProfileRef.current?.phone_number && lastCompleteProfileRef.current?.municipality_id);
 
   // Use cached profile if current user object is incomplete but we have a cached one
@@ -47,7 +45,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     (typeof effectiveUser.municipality_id === 'number' ? effectiveUser.municipality_id > 0 : 
      typeof effectiveUser.municipality_id === 'string' ? effectiveUser.municipality_id.trim() !== '' : false);
   const effectiveIsComplete = effectiveIsSuperAdmin
-    ? effectiveHasPhone
+    ? true
     : (effectiveHasPhone && effectiveHasMunicipality);
 
   // Only redirect if profile is truly incomplete AND we don't have a cached complete profile
@@ -59,7 +57,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     !checkingProfile;
 
   // ALL HOOKS MUST BE AT THE TOP - BEFORE ANY RETURNS
-  // Track the last complete profile we saw
+  // Track the last complete profile we saw (super_admin is always complete)
   useEffect(() => {
     const userIsSuperAdmin = user?.role === 'super_admin';
     const userHasPhone = user?.phone_number && 
@@ -68,7 +66,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       (typeof user.municipality_id === 'number' ? user.municipality_id > 0 : 
        typeof user.municipality_id === 'string' ? user.municipality_id.trim() !== '' : false);
     
-    if (userIsSuperAdmin ? userHasPhone : (userHasPhone && userHasMunicipality)) {
+    if (userIsSuperAdmin || (userHasPhone && userHasMunicipality)) {
       lastCompleteProfileRef.current = user;
     }
   }, [user]);
@@ -106,7 +104,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
                typeof refreshed.municipality_id === 'string' ? refreshed.municipality_id.trim() !== '' : false);
             
             const refreshedIsComplete = refreshedIsSuperAdmin
-              ? refreshedHasPhone
+              ? true
               : (refreshedHasPhone && refreshedHasMunicipality);
             
             if (!refreshedIsComplete) {

@@ -12,11 +12,12 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (super_admin never needs account setup)
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      // Check if profile is complete
-      if (user?.phone_number && user?.municipality_id) {
+    if (!authLoading && isAuthenticated && user) {
+      if (user.role === 'super_admin') {
+        navigate('/dashboard', { replace: true });
+      } else if (user?.phone_number && user?.municipality_id) {
         navigate('/dashboard', { replace: true });
       } else {
         navigate('/account/setup', { replace: true });
@@ -39,9 +40,11 @@ const Login = () => {
 
     try {
       const result = await login(formData.email, formData.password);
-      // Check if profile is complete, if not, redirect to account setup
       const user = result?.user;
-      if (user && user.phone_number && user.municipality_id) {
+      // Super admin goes straight to dashboard; others need complete profile
+      if (user?.role === 'super_admin') {
+        navigate('/dashboard', { replace: true });
+      } else if (user && user.phone_number && user.municipality_id) {
         navigate('/dashboard', { replace: true });
       } else {
         navigate('/account/setup', { replace: true });
