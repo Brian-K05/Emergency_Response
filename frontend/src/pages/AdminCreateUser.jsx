@@ -199,8 +199,13 @@ const AdminCreateUser = () => {
     }
 
     try {
-      // For admin-created users, we need to use a special flow
-      // First, create the auth user
+      // Save current session so we can restore it after signUp (signUp replaces the session with the new user)
+      const { data: { session: sessionBeforeCreate } } = await supabase.auth.getSession();
+      if (!sessionBeforeCreate) {
+        throw new Error('Your session expired. Please log in again.');
+      }
+
+      // Create the auth user (this will temporarily switch the session to the new user)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -220,6 +225,12 @@ const AdminCreateUser = () => {
       if (!authData.user) {
         throw new Error('Failed to create user');
       }
+
+      // Restore the admin's session immediately so we stay logged in as the current user
+      await supabase.auth.setSession({
+        access_token: sessionBeforeCreate.access_token,
+        refresh_token: sessionBeforeCreate.refresh_token,
+      });
 
       // Now create the profile using the admin function
       // For super admin creating municipal admin, use username as fallback for full_name if not provided
