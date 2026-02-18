@@ -26,6 +26,7 @@ const IncidentReport = ({ onSuccess, onCancel }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [locationLoading, setLocationLoading] = useState(false);
 
   useEffect(() => {
     fetchMunicipalities();
@@ -109,33 +110,37 @@ const IncidentReport = ({ onSuccess, onCancel }) => {
   };
 
   const getCurrentLocation = () => {
-    // GPS works without internet/data - it uses satellite signals
-    // So we can always try to get it, even if there's no mobile data
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFormData(prev => ({
-            ...prev,
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          }));
-          setLocationError(''); // Clear any previous errors
-          console.log('GPS location obtained:', position.coords.latitude, position.coords.longitude);
-        },
-        (error) => {
-          // GPS failed - that's okay, it's optional
-          // Common reasons: user denied permission, device doesn't have GPS, etc.
-          console.log('GPS not available (this is okay - GPS is optional):', error);
-          // Don't set error - GPS is optional, form can still be submitted
-        },
-        {
-          timeout: 10000, // 10 second timeout (GPS can take a moment)
-          enableHighAccuracy: true, // Try to get accurate GPS (works without internet)
-          maximumAge: 60000 // Accept cached position up to 1 minute old
-        }
-      );
+    setLocationError('');
+    if (!navigator.geolocation) {
+      setLocationError('Location is not supported by your device. You can still submit — we\'ll use your barangay area.');
+      return;
     }
-    // If geolocation not supported, that's fine - GPS is optional
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData(prev => ({
+          ...prev,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }));
+        setLocationError('');
+        setLocationLoading(false);
+      },
+      (error) => {
+        setLocationLoading(false);
+        const message = error.code === 1
+          ? 'Location access denied. Tap "Allow" when your browser asks, or submit anyway — we\'ll use your barangay.'
+          : error.code === 3
+            ? 'Location timed out. Check that GPS/Location is on and try again, or submit anyway.'
+            : 'Could not get GPS. You can still submit — we\'ll use your barangay area.';
+        setLocationError(message);
+      },
+      {
+        timeout: 15000,
+        enableHighAccuracy: true,
+        maximumAge: 60000
+      }
+    );
   };
 
   const handleChange = (e) => {
@@ -161,12 +166,15 @@ const IncidentReport = ({ onSuccess, onCancel }) => {
     setLoading(true);
     setError('');
 
-    // Simplified validation - only essential fields (GPS is optional)
     if (!formData.incident_type || !formData.description) {
       setError('Please select emergency type and provide brief description.');
       setLoading(false);
       return;
     }
+
+    // DB requires latitude/longitude NOT NULL — use GPS if we have it, otherwise fallback (0,0) so submit succeeds
+    const lat = formData.latitude != null ? parseFloat(formData.latitude) : 0;
+    const lng = formData.longitude != null ? parseFloat(formData.longitude) : 0;
     
     // Build full address from street + barangay + municipality
     const fullAddress = [
@@ -175,8 +183,10 @@ const IncidentReport = ({ onSuccess, onCancel }) => {
       userMunicipality
     ].filter(Boolean).join(', ');
     
-    // Auto-generate title from incident type and location
     const title = `${formData.incident_type.charAt(0).toUpperCase() + formData.incident_type.slice(1)} Emergency${formData.street_address ? ' at ' + formData.street_address : ''}`;
+    const addressForDb = (lat === 0 && lng === 0)
+      ? (fullAddress || `${userBarangay || 'Unknown'}, ${userMunicipality || 'Unknown'}`) + ' (GPS not available)'
+      : (fullAddress || `${userBarangay || 'Unknown'}, ${userMunicipality || 'Unknown'}`);
 
     try {
       // Ensure barangay_id and municipality_id are numbers or null (not empty strings)
@@ -197,9 +207,9 @@ const IncidentReport = ({ onSuccess, onCancel }) => {
         incident_type: formData.incident_type,
         title: title, // Auto-generated
         description: formData.description,
-        location_address: fullAddress || `${userBarangay || 'Unknown'}, ${userMunicipality || 'Unknown'}`,
-        latitude: formData.latitude ? parseFloat(formData.latitude) : null, // Optional
-        longitude: formData.longitude ? parseFloat(formData.longitude) : null, // Optional
+        location_address: addressForDb,
+        latitude: lat,
+        longitude: lng,
         barangay_id: barangayId,
         municipality_id: municipalityId,
         urgency_level: formData.urgency_level,
@@ -391,17 +401,27 @@ const IncidentReport = ({ onSuccess, onCancel }) => {
             <button 
               type="button" 
               onClick={getCurrentLocation} 
-              className="btn-secondary"
-              style={{ width: '100%', marginTop: '0.5rem', fontSize: '0.875rem' }}
+              className="btn-secondary btn-gps-location"
+              disabled={locationLoading}
+              style={{ width: '100%', marginTop: '0.5rem', fontSize: '0.875rem', minHeight: '44px', touchAction: 'manipulation' }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '0.5rem', verticalAlign: 'middle' }}>
-                <path d="M12 2v4M12 18v4M4 12H2m20 0h-2M19.07 19.07l-2.83-2.83M6.76 6.76L3.93 3.93m14.14 0l-2.83 2.83M6.76 17.24l-2.83 2.83"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              {formData.latitude && formData.longitude ? 'Update GPS Location' : 'Get GPS Location'}
+              {locationLoading ? (
+                <>
+                  <span className="spinner" style={{ width: 18, height: 18, marginRight: '0.5rem' }} />
+                  Getting location...
+                </>
+              ) : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '0.5rem', verticalAlign: 'middle', flexShrink: 0 }}>
+                    <path d="M12 2v4M12 18v4M4 12H2m20 0h-2M19.07 19.07l-2.83-2.83M6.76 6.76L3.93 3.93m14.14 0l-2.83 2.83M6.76 17.24l-2.83 2.83"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  {formData.latitude != null && formData.longitude != null ? 'Update GPS Location' : 'Get GPS Location'}
+                </>
+              )}
             </button>
             <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block', marginTop: '0.5rem' }}>
-              💡 GPS uses satellite signals, not mobile data. It works even without Smart/Globe/TNT signal, as long as your device has GPS enabled.
+              Tap the button above to use your current location. If it doesn&apos;t work, you can still submit — we&apos;ll use your barangay.
             </small>
           </div>
 

@@ -975,6 +975,15 @@ textarea {
   transform: translateY(-2px);
 }
 
+.btn-gps-location {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
 .btn-small {
   padding: var(--spacing-xs) var(--spacing-sm);
   font-size: 0.75rem;
