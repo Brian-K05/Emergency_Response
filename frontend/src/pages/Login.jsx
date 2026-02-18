@@ -86,6 +86,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
+        <Link to="/" className="auth-back-link">← Back to home</Link>
         <div className="auth-header">
           <div className="logo-icon">🚨</div>
           <h2>Emergency Response</h2>

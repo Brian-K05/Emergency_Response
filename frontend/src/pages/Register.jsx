@@ -79,6 +79,7 @@ const Register = () => {
   return (
     <div className="register-container">
       <div className="register-card register-card-two-col">
+        <Link to="/" className="auth-back-link">← Back to home</Link>
         <div className="register-header auth-header">
           <div className="logo-icon">🚨</div>
           <h2>Join Emergency Response</h2>
