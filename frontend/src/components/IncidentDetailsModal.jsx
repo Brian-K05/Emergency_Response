@@ -83,11 +83,11 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
         console.warn('Could not fetch updates:', e);
       }
 
-      // Fetch assignments
+      // Fetch assignments (only use FKs that exist: responder_id; avoid monitor_user_id on assignments — it's on response_teams)
       try {
         const { data: assignmentsData, error: assignmentsError } = await supabase
           .from('assignments')
-          .select('*, team:response_teams(id, name, monitor_user_id), monitor:users!monitor_user_id(id, full_name)')
+          .select('*, responder:users!assignments_responder_id_fkey(id, full_name)')
           .eq('incident_id', incidentId);
         
         if (!assignmentsError) {
@@ -360,7 +360,8 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
               <div className="incidents-list">
                 {assignments.map((assignment) => (
                   <div key={assignment.id} className="incident-card">
-                    <p><strong>Team:</strong> {assignment.team?.name || 'Unknown Team'}</p>
+                    {assignment.responder && <p><strong>Responder:</strong> {assignment.responder.full_name}</p>}
+                    {assignment.team && <p><strong>Team:</strong> {assignment.team.name}</p>}
                     {assignment.monitor && <p><strong>Team Monitor:</strong> {assignment.monitor.full_name}</p>}
                     <p><strong>Status:</strong> {assignment.status}</p>
                     {assignment.notes && <p><strong>Notes:</strong> {assignment.notes}</p>}
