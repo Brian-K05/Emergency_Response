@@ -155,8 +155,13 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
       setUpdating(true);
       setError('');
       
+      const incidentIdNum = typeof incidentId === 'string' ? parseInt(incidentId, 10) : incidentId;
+      if (Number.isNaN(incidentIdNum)) {
+        setError('Invalid incident ID');
+        return;
+      }
       const { error: rpcError } = await supabase.rpc('request_municipal_assistance', {
-        p_incident_id: incidentId,
+        p_incident_id: incidentIdNum,
         p_escalated_by: user.id,
         p_reason: updateMessage
       });
