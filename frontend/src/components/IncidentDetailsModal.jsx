@@ -250,20 +250,18 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
         <div>
           {/* Incident Header */}
           <div style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '2rem' }}>{getTypeIcon(incident.incident_type)}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <span className={`badge ${getStatusBadge(incident.status)}`}>
-                    {incident.status.replace('_', ' ')}
-                  </span>
-                  <span className={`badge ${getUrgencyBadge(incident.urgency_level)}`}>
-                    {incident.urgency_level}
-                  </span>
-                  <span className="badge badge-default">
-                    {incident.incident_type?.replace('_', ' ')}
-                  </span>
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <span className={`badge ${getStatusBadge(incident.status)}`}>
+                  {incident.status.replace('_', ' ')}
+                </span>
+                <span className={`badge ${getUrgencyBadge(incident.urgency_level)}`}>
+                  {incident.urgency_level}
+                </span>
+                <span className="badge badge-default" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span style={{ fontSize: '1.1rem' }}>{getTypeIcon(incident.incident_type)}</span>
+                  {incident.incident_type?.replace('_', ' ').toUpperCase()}
+                </span>
               </div>
             </div>
           </div>
@@ -304,14 +302,16 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
               border: '1px solid var(--border-color)'
             }}>
               <h4 style={{ marginTop: 0, marginBottom: '1rem' }}>Reporter Information</h4>
-              {incident.reporter && (
+              {incident.reporter ? (
                 <>
-                  <p><strong>Name:</strong> {incident.reporter.full_name}</p>
-                  <p><strong>Email:</strong> {incident.reporter.email}</p>
-                  {incident.reporter.phone_number && (
-                    <p><strong>Phone:</strong> {incident.reporter.phone_number}</p>
-                  )}
+                  <p><strong>Name:</strong> {incident.reporter.full_name || '—'}</p>
+                  <p><strong>Email:</strong> {incident.reporter.email || '—'}</p>
+                  <p><strong>Phone:</strong> {incident.reporter.phone_number || '—'}</p>
                 </>
+              ) : incident.reporter_id ? (
+                <p style={{ color: 'var(--text-muted)' }}>Loading reporter…</p>
+              ) : (
+                <p style={{ color: 'var(--text-muted)' }}>Reporter information not available.</p>
               )}
             </div>
           </div>

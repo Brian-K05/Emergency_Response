@@ -31,17 +31,28 @@ const AdminManageAccounts = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
+  const isMunicipalAdmin = user?.role === 'municipal_admin';
+  const isSuperAdmin = user?.role === 'super_admin';
+  const isBarangayOfficial = user?.role === 'barangay_official';
+
   useEffect(() => {
-    if (!user || user.role !== 'super_admin') return;
+    if (!user || (!isSuperAdmin && !isMunicipalAdmin && !isBarangayOfficial)) return;
     let cancelled = false;
     const load = async () => {
       try {
         setLoading(true);
         setError('');
+        // Municipal admin: only their municipality; barangay official: only their barangay (residents); super admin: optional filters
+        const municipalityId = isMunicipalAdmin
+          ? user.municipality_id
+          : (filterMunicipality || undefined);
+        const barangayId = isBarangayOfficial ? user.barangay_id : undefined;
+        const roleFilter = isBarangayOfficial ? 'resident' : (filterRole || undefined);
         const [usersData, munData] = await Promise.all([
           supabaseService.getUsersForAdmin({
-            role: filterRole || undefined,
-            municipality_id: filterMunicipality || undefined,
+            role: roleFilter,
+            municipality_id: municipalityId,
+            barangay_id: barangayId,
             is_active: filterStatus === '' ? undefined : filterStatus === 'true',
           }),
           supabaseService.getMunicipalities(),
@@ -58,7 +69,7 @@ const AdminManageAccounts = () => {
     };
     load();
     return () => { cancelled = true; };
-  }, [user, filterRole, filterMunicipality, filterStatus]);
+  }, [user, isSuperAdmin, isMunicipalAdmin, isBarangayOfficial, filterRole, filterMunicipality, filterStatus]);
 
   const filteredAccounts = useMemo(() => {
     if (!searchTerm.trim()) return accounts;
@@ -71,12 +82,12 @@ const AdminManageAccounts = () => {
     );
   }, [accounts, searchTerm]);
 
-  if (!user || user.role !== 'super_admin') {
+  if (!user || (!isSuperAdmin && !isMunicipalAdmin && !isBarangayOfficial)) {
     return (
       <DashboardLayout>
         <div className="section-modern">
           <h2>Access Denied</h2>
-          <p>Only Super Administrators can access Account Management. This page is for monitoring accounts only.</p>
+          <p>Only Super Administrators, Municipal Administrators, and Barangay Officials can access this page. Barangay officials see only residents in their barangay (view only).</p>
         </div>
       </DashboardLayout>
     );
@@ -89,7 +100,11 @@ const AdminManageAccounts = () => {
           <div>
             <h2>Account Management</h2>
             <p className="section-subtitle">
-              View and monitor all system accounts. You are not responsible for incidents—this is for oversight only.
+              {isBarangayOfficial
+                ? 'View only — residents in your barangay. You cannot manage or edit accounts.'
+                : isMunicipalAdmin
+                  ? `View and manage accounts in your municipality (${municipalities.find(m => m.id === user.municipality_id)?.name || user.municipality?.name || 'your municipality'}) only. You cannot see or manage accounts from other municipalities.`
+                  : 'View and monitor all system accounts. You are not responsible for incidents—this is for oversight only.'}
             </p>
           </div>
         </div>
@@ -118,31 +133,45 @@ const AdminManageAccounts = () => {
               style={{ width: '100%' }}
             />
           </label>
-          <label>
-            <span style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Role</span>
-            <select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="input-modern"
-            >
-              {ROLES_FOR_FILTER.map((r) => (
-                <option key={r.value} value={r.value}>{r.label}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Municipality</span>
-            <select
-              value={filterMunicipality}
-              onChange={(e) => setFilterMunicipality(e.target.value)}
-              className="input-modern"
-            >
-              <option value="">All municipalities</option>
-              {municipalities.map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
-          </label>
+          {!isBarangayOfficial && (
+            <label>
+              <span style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Role</span>
+              <select
+                value={filterRole}
+                onChange={(e) => setFilterRole(e.target.value)}
+                className="input-modern"
+              >
+                {ROLES_FOR_FILTER.map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          {isSuperAdmin && (
+            <label>
+              <span style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Municipality</span>
+              <select
+                value={filterMunicipality}
+                onChange={(e) => setFilterMunicipality(e.target.value)}
+                className="input-modern"
+              >
+                <option value="">All municipalities</option>
+                {municipalities.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          {isMunicipalAdmin && !isBarangayOfficial && (
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', alignSelf: 'flex-end', paddingBottom: '0.5rem' }}>
+              Municipality: {municipalities.find(m => m.id === user.municipality_id)?.name || user.municipality?.name || 'Your municipality'}
+            </span>
+          )}
+          {isBarangayOfficial && (
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)', alignSelf: 'flex-end', paddingBottom: '0.5rem' }}>
+              Barangay: {user.barangay?.name || 'Your barangay'} — View only
+            </span>
+          )}
           <label>
             <span style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Status</span>
             <select

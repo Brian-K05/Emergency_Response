@@ -123,10 +123,9 @@ export const supabaseService = {
 
   getIncident: async (id) => {
     try {
-      // First try simple query without relationships
       const { data, error } = await supabase
         .from('incidents')
-        .select('*')
+        .select('*, reporter:users!incidents_reporter_id_fkey(id, full_name, email, phone_number)')
         .eq('id', id)
         .single();
       
@@ -524,6 +523,9 @@ export const supabaseService = {
     }
     if (filters.municipality_id) {
       query = query.eq('municipality_id', filters.municipality_id);
+    }
+    if (filters.barangay_id) {
+      query = query.eq('barangay_id', filters.barangay_id);
     }
     if (filters.is_active !== undefined && filters.is_active !== '') {
       query = query.eq('is_active', filters.is_active === true || filters.is_active === 'true');

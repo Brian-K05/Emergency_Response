@@ -402,7 +402,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
             </svg>
             <span>Notifications</span>
           </button>
-          {/* Create User & Verify Residents — municipal_admin and admin (not super_admin; they have their own block above) */}
+          {/* Create User, Account Management (municipal only), Verify Residents — municipal_admin and admin */}
           {(user?.role === 'municipal_admin' || user?.role === 'admin') && (
             <>
               <button 
@@ -417,6 +417,20 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
                 </svg>
                 <span>Create User</span>
               </button>
+              {user?.role === 'municipal_admin' && (
+                <button 
+                  onClick={() => { navigate('/admin/accounts'); setSidebarOpen(false); }} 
+                  className={`nav-item ${isActive('/admin/accounts') ? 'active' : ''}`}
+                  title="View accounts in your municipality only"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                  <span>Account Management</span>
+                </button>
+              )}
               <button 
                 onClick={() => { navigate('/admin/verify-residents'); setSidebarOpen(false); }} 
                 className={`nav-item ${isActive('/admin/verify-residents') ? 'active' : ''}`}
@@ -429,6 +443,21 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
                 <span>Verify Residents</span>
               </button>
             </>
+          )}
+          {/* Barangay official: view-only list of residents in their barangay */}
+          {user?.role === 'barangay_official' && (
+            <button 
+              onClick={() => { navigate('/admin/accounts'); setSidebarOpen(false); }} 
+              className={`nav-item ${isActive('/admin/accounts') ? 'active' : ''}`}
+              title="View residents in your barangay (view only)"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <span>View Residents</span>
+            </button>
           )}
           {/* Map View — for municipal_admin, admin, mdrrmo (super_admin has it in block above) */}
           {(user?.role === 'admin' || user?.role === 'mdrrmo' || user?.role === 'municipal_admin') && (
