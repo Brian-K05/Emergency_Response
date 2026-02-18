@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabaseService } from '../services/supabaseService';
 import { supabase } from '../lib/supabase';
 import soundAlert from '../utils/soundAlert';
+import Modal from '../components/Modal';
 
 const IncidentDetails = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const IncidentDetails = () => {
   const [selectedResponder, setSelectedResponder] = useState('');
   const [assignmentNotes, setAssignmentNotes] = useState('');
   const [assigning, setAssigning] = useState(false);
+  const [showRequestSuccessModal, setShowRequestSuccessModal] = useState(false);
 
   useEffect(() => {
     fetchIncidentDetails();
@@ -243,15 +245,19 @@ const IncidentDetails = () => {
       const { error: rpcError } = await supabase.rpc('request_municipal_assistance', {
         p_incident_id: parseInt(id),
         p_escalated_by: user.id,
-        p_reason: updateMessage
+        p_reason: updateMessage.trim()
       });
 
-      if (rpcError) throw rpcError;
+      if (rpcError) {
+        console.error('Request assistance RPC error:', rpcError);
+        throw rpcError;
+      }
 
       await fetchIncidentDetails(); // Refresh data
       setUpdateMessage('');
-      alert('Assistance requested! MDRRMO and responders have been notified.');
+      setShowRequestSuccessModal(true);
     } catch (err) {
+      console.error('Request assistance failed:', err);
       setError(err.message || 'Failed to request assistance');
     } finally {
       setUpdating(false);
@@ -328,6 +334,7 @@ const IncidentDetails = () => {
   }
 
   return (
+    <>
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
@@ -654,6 +661,28 @@ const IncidentDetails = () => {
         </div>
       </main>
     </div>
+
+    {/* Success confirmation after Request Assistance */}
+    <Modal
+      isOpen={showRequestSuccessModal}
+      onClose={() => setShowRequestSuccessModal(false)}
+      title="Submission sent"
+      size="small"
+    >
+      <div style={{ padding: '0.5rem 0', textAlign: 'center' }}>
+        <p style={{ margin: '0 0 1.25rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
+          Your request for municipal assistance has been sent successfully. MDRRMO has been notified.
+        </p>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => setShowRequestSuccessModal(false)}
+        >
+          OK
+        </button>
+      </div>
+    </Modal>
+    </>
   );
 };
 

@@ -117,10 +117,12 @@ const AdminCreateUser = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    const next = { ...formData, [name]: value };
+    // When switching to MDRRMO (municipal team), clear barangay — not applicable
+    if (name === 'role' && value === 'mdrrmo') {
+      next.barangay_id = '';
+    }
+    setFormData(next);
     setError('');
     setSuccess('');
   };
@@ -186,6 +188,12 @@ const AdminCreateUser = () => {
       // Municipal admin must assign users to their municipality
       if (!formData.municipality_id || formData.municipality_id !== user.municipality_id) {
         setError('You can only create users for your municipality.');
+        setLoading(false);
+        return;
+      }
+      // Resident and Barangay Official must have a barangay (where they live / serve)
+      if (['resident', 'barangay_official'].includes(formData.role) && !formData.barangay_id) {
+        setError('Barangay is required for residents and barangay officials.');
         setLoading(false);
         return;
       }
@@ -290,11 +298,7 @@ const AdminCreateUser = () => {
         password: '',
         password_confirmation: '',
         full_name: '',
-        age: '',
-        gender: '',
-        civil_status: '',
-        educational_attainment: '',
-        trainings_seminars_attended: '',
+        address: '',
         role: user?.role === 'super_admin' ? 'municipal_admin' : 'resident',
         municipality_id: user?.municipality_id || '',
         barangay_id: '',
@@ -585,7 +589,9 @@ const AdminCreateUser = () => {
                 </div>
 
                 <div className="form-group-modern">
-                  <label htmlFor="full_name">Full Name <span className="required">*</span></label>
+                  <label htmlFor="full_name">
+                    {formData.role === 'mdrrmo' ? 'Team / Office Name' : 'Full Name'} <span className="required">*</span>
+                  </label>
                   <input
                     type="text"
                     id="full_name"
@@ -593,9 +599,14 @@ const AdminCreateUser = () => {
                     value={formData.full_name}
                     onChange={handleChange}
                     required
-                    placeholder="Enter full name"
+                    placeholder={formData.role === 'mdrrmo' ? 'e.g. MDRRMO San Isidro' : 'Enter full name'}
                     className="input-modern"
                   />
+                  {formData.role === 'mdrrmo' && (
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      MDRRMO is a municipal team; use the office or team name.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -653,28 +664,45 @@ const AdminCreateUser = () => {
                     </option>
                   </select>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                    Users will be assigned to your municipality
+                    {formData.role === 'mdrrmo'
+                      ? 'MDRRMO is assigned to this municipality (your municipality).'
+                      : 'Users will be assigned to your municipality'}
                   </p>
                 </div>
 
-                <div className="form-group-modern">
-                  <label htmlFor="barangay_id">Barangay</label>
-                  <select
-                    id="barangay_id"
-                    name="barangay_id"
-                    value={formData.barangay_id}
-                    onChange={handleChange}
-                    disabled={!formData.municipality_id}
-                    className="input-modern"
-                  >
-                    <option value="">Select barangay (optional)</option>
-                    {barangays.map((bar) => (
-                      <option key={bar.id} value={bar.id}>
-                        {bar.name}
+                {/* Barangay: required for resident & barangay official; not used for MDRRMO (municipal team) */}
+                {formData.role !== 'mdrrmo' && (
+                  <div className="form-group-modern">
+                    <label htmlFor="barangay_id">
+                      Barangay {['resident', 'barangay_official'].includes(formData.role) && <span className="required">*</span>}
+                    </label>
+                    <select
+                      id="barangay_id"
+                      name="barangay_id"
+                      value={formData.barangay_id}
+                      onChange={handleChange}
+                      disabled={!formData.municipality_id}
+                      required={['resident', 'barangay_official'].includes(formData.role)}
+                      className="input-modern"
+                    >
+                      <option value="">
+                        {['resident', 'barangay_official'].includes(formData.role)
+                          ? 'Select barangay'
+                          : 'Select barangay (optional)'}
                       </option>
-                    ))}
-                  </select>
-                </div>
+                      {barangays.map((bar) => (
+                        <option key={bar.id} value={bar.id}>
+                          {bar.name}
+                        </option>
+                      ))}
+                    </select>
+                    {formData.role === 'resident' && (
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                        Barangay where the resident lives (required).
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="form-group-modern">
                   <label htmlFor="phone_number">Phone Number</label>
@@ -684,24 +712,31 @@ const AdminCreateUser = () => {
                     name="phone_number"
                     value={formData.phone_number}
                     onChange={handleChange}
-                    placeholder="Enter phone number"
+                    placeholder={formData.role === 'mdrrmo' ? 'Team contact number (optional)' : 'Enter phone number'}
                     className="input-modern"
                   />
                 </div>
               </div>
 
-              {/* Address field for all users */}
+              {/* Address: for resident/barangay = person address; for MDRRMO = optional office address */}
               <div className="form-group-modern">
-                <label htmlFor="address">Address</label>
+                <label htmlFor="address">
+                  {formData.role === 'mdrrmo' ? 'Office address (optional)' : 'Address'}
+                </label>
                 <textarea
                   id="address"
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
                   rows="2"
-                  placeholder="Complete address"
+                  placeholder={formData.role === 'mdrrmo' ? 'Office or team address if needed' : 'Complete address (e.g. street, purok)'}
                   className="input-modern"
                 />
+                {formData.role === 'resident' && (
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                    Resident&apos;s address within the barangay.
+                  </p>
+                )}
               </div>
             </>
           )}

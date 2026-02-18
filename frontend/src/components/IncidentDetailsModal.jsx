@@ -16,6 +16,7 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
   const [updateMessage, setUpdateMessage] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [error, setError] = useState('');
+  const [showRequestSuccessModal, setShowRequestSuccessModal] = useState(false);
   // Removed responder assignment - MDRRMO calls teams directly
 
   useEffect(() => {
@@ -160,19 +161,23 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
         setError('Invalid incident ID');
         return;
       }
-      const { error: rpcError } = await supabase.rpc('request_municipal_assistance', {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('request_municipal_assistance', {
         p_incident_id: incidentIdNum,
         p_escalated_by: user.id,
-        p_reason: updateMessage
+        p_reason: updateMessage.trim()
       });
 
-      if (rpcError) throw rpcError;
+      if (rpcError) {
+        console.error('Request assistance RPC error:', rpcError);
+        throw rpcError;
+      }
 
       await fetchIncidentDetails(); // Refresh data
       setUpdateMessage('');
       if (onUpdate) onUpdate(); // Notify parent to refresh
-      alert('Assistance requested! MDRRMO has been notified and will coordinate with response teams.');
+      setShowRequestSuccessModal(true);
     } catch (err) {
+      console.error('Request assistance failed:', err);
       setError(err.message || 'Failed to request assistance');
     } finally {
       setUpdating(false);
@@ -225,6 +230,7 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
   if (!isOpen) return null;
 
   return (
+    <>
     <Modal
       isOpen={isOpen}
       onClose={onClose}
@@ -491,6 +497,28 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
         </div>
       )}
     </Modal>
+
+    {/* Success confirmation after Request Assistance */}
+    <Modal
+      isOpen={showRequestSuccessModal}
+      onClose={() => setShowRequestSuccessModal(false)}
+      title="Submission sent"
+      size="small"
+    >
+      <div style={{ padding: '0.5rem 0', textAlign: 'center' }}>
+        <p style={{ margin: '0 0 1.25rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
+          Your request for municipal assistance has been sent successfully. MDRRMO has been notified.
+        </p>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => setShowRequestSuccessModal(false)}
+        >
+          OK
+        </button>
+      </div>
+    </Modal>
+    </>
   );
 };
 
