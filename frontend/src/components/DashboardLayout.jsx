@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabaseService } from '../services/supabaseService';
@@ -16,6 +16,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const playedEscalationIdsRef = useRef(new Set());
 
   // Subscribe to notifications and play sound alerts (ONLY for barangay officials and admins, NOT residents)
   useEffect(() => {
@@ -37,44 +38,40 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
 
     // Sound for notifications is handled by incident subscription below (checkAndPlayAlert)
 
-    // Check for existing unread notifications on mount (in case user just logged in)
-    // BUT don't play sounds - the incident subscription handles all sound alerts
-    // This prevents duplicate alerts and ensures sounds only play once per incident
+    // Check for existing unread notifications on mount — play escalation sound if any unread escalation_request
     const checkExistingNotifications = setTimeout(async () => {
       try {
         const unreadNotifications = await supabaseService.getNotifications(true); // true = unread only
         if (unreadNotifications && unreadNotifications.length > 0) {
-          // Check each unread notification - find incidents that haven't been viewed
-          // But don't play sounds here - incident subscription handles it
           for (const notification of unreadNotifications) {
-            if (notification && !notification.is_read && notification.incident_id) {
-              const incidentIdStr = String(notification.incident_id);
-              if (!viewedIncidents.has(incidentIdStr)) {
-                // Incident not viewed yet - but don't play sound here
-                // The incident subscription will handle it when it detects the incident
-                console.log('📬 Unread notification found (sound handled by incident subscription):', notification.id);
-                break; // Only check the most recent unread notification
-              } else {
-                console.log('⏭️ Skipping notification - incident already viewed:', notification.incident_id);
-              }
+            if (notification && notification.notification_type === 'escalation_request' && notification.id && !playedEscalationIdsRef.current.has(notification.id)) {
+              playedEscalationIdsRef.current.add(notification.id);
+              soundAlert.playEscalationAlert();
+              break; // play once
             }
           }
         }
       } catch (err) {
         console.warn('Could not check existing notifications:', err);
       }
-    }, 1000); // Wait 1 second for audio context to be ready
+    }, 1500); // Wait for audio context and configs to be ready
 
     // Subscribe to real-time notifications (NO SOUNDS - incident subscription handles all alerts)
     // This subscription is kept for potential future use, but doesn't play sounds to avoid duplicates
     // The incident subscription (FAST PATH) already plays sounds immediately when incidents are created
     const notificationSubscription = supabaseService.subscribeToNotifications(user.id, (payload) => {
       // Subscription is filtered by user_id, so we only receive our own notifications
-      const record = payload.new || payload.record;
+      const record = payload.new || payload.record || payload;
       if (!record) return;
       // Municipal gets alert sound ONLY when barangay requested assistance (escalation)
       if (record.notification_type === 'escalation_request') {
-        soundAlert.playEscalationAlert();
+        const nid = record.id;
+        if (nid && !playedEscalationIdsRef.current.has(nid)) {
+          playedEscalationIdsRef.current.add(nid);
+          soundAlert.playEscalationAlert();
+        } else if (!nid) {
+          soundAlert.playEscalationAlert();
+        }
       }
     });
 
@@ -207,6 +204,23 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
       }
     }, 2000); // Check every 2 seconds
 
+    // Poll for unread escalation_request so MDRRMO/municipal always get alert even if Realtime misses it
+    const escalationPollInterval = setInterval(async () => {
+      try {
+        const unread = await supabaseService.getNotifications(true);
+        if (!unread || !Array.isArray(unread)) return;
+        for (const n of unread) {
+          if (n.notification_type === 'escalation_request' && n.id && !playedEscalationIdsRef.current.has(n.id)) {
+            playedEscalationIdsRef.current.add(n.id);
+            soundAlert.playEscalationAlert();
+            break; // play once per poll
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }, 2000);
+
     return () => {
       clearTimeout(checkExistingNotifications);
       if (notificationSubscription) {
@@ -217,6 +231,9 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
       }
       if (pollingInterval) {
         clearInterval(pollingInterval);
+      }
+      if (escalationPollInterval) {
+        clearInterval(escalationPollInterval);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

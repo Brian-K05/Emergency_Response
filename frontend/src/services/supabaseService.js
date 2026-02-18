@@ -123,6 +123,15 @@ export const supabaseService = {
 
   getIncident: async (id) => {
     try {
+      // Prefer RPC so reporter is visible (bypasses RLS on users for reporter row)
+      const incidentId = typeof id === 'string' ? parseInt(id, 10) : id;
+      const { data: rpcData, error: rpcError } = await supabase.rpc('get_incident_with_reporter', {
+        p_incident_id: incidentId,
+      });
+      if (!rpcError && rpcData) {
+        return rpcData;
+      }
+      // Fallback: direct select with reporter embed (may be null if RLS blocks reporter)
       const { data, error } = await supabase
         .from('incidents')
         .select('*, reporter:users!incidents_reporter_id_fkey(id, full_name, email, phone_number)')

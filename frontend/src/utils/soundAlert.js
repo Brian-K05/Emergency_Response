@@ -335,13 +335,14 @@ class SoundAlert {
         }
       } catch (e) {
         console.error('❌ Error playing custom escalation sound:', e);
-        // No fallback - just don't play anything
+        this.playGeneratedEscalationSound();
         return;
       }
     }
     
-    // If no custom sound configured, don't play anything
-    console.log('⚠️ No custom escalation sound configured, skipping sound');
+    // No custom sound configured — play generated escalation sound so MDRRMO always hears an alert
+    console.log('⚠️ No custom escalation sound configured, playing generated escalation sound');
+    this.playGeneratedEscalationSound();
   }
   
   // Generate and play escalation horn sound
