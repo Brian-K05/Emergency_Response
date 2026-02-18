@@ -83,11 +83,11 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
         console.warn('Could not fetch updates:', e);
       }
 
-      // Fetch assignments (only use FKs that exist: responder_id; avoid monitor_user_id on assignments — it's on response_teams)
+      // Fetch assignments (plain select to avoid 400 from embed syntax; show responder id if needed)
       try {
         const { data: assignmentsData, error: assignmentsError } = await supabase
           .from('assignments')
-          .select('*, responder:users!assignments_responder_id_fkey(id, full_name)')
+          .select('*')
           .eq('incident_id', incidentId);
         
         if (!assignmentsError) {
@@ -360,12 +360,15 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
               <div className="incidents-list">
                 {assignments.map((assignment) => (
                   <div key={assignment.id} className="incident-card">
-                    {assignment.responder && <p><strong>Responder:</strong> {assignment.responder.full_name}</p>}
-                    {assignment.team && <p><strong>Team:</strong> {assignment.team.name}</p>}
-                    {assignment.monitor && <p><strong>Team Monitor:</strong> {assignment.monitor.full_name}</p>}
+                    {(assignment.responder?.full_name || assignment.team?.name) && (
+                      <p><strong>Assigned:</strong> {assignment.responder?.full_name || assignment.team?.name}</p>
+                    )}
+                    {!assignment.responder?.full_name && !assignment.team?.name && assignment.responder_id && (
+                      <p><strong>Responder assigned</strong></p>
+                    )}
                     <p><strong>Status:</strong> {assignment.status}</p>
                     {assignment.notes && <p><strong>Notes:</strong> {assignment.notes}</p>}
-                    <p><strong>Assigned:</strong> {new Date(assignment.created_at).toLocaleString()}</p>
+                    <p><strong>Date:</strong> {new Date(assignment.created_at).toLocaleString()}</p>
                   </div>
                 ))}
               </div>
