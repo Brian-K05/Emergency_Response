@@ -68,11 +68,13 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
     // This subscription is kept for potential future use, but doesn't play sounds to avoid duplicates
     // The incident subscription (FAST PATH) already plays sounds immediately when incidents are created
     const notificationSubscription = supabaseService.subscribeToNotifications(user.id, (payload) => {
-      console.log('🔔 Raw notification payload (sound handled by incident subscription):', payload);
-      
-      // Don't play sounds here - the incident subscription already handles it
-      // This prevents duplicate alerts (incident subscription + notification subscription)
-      // Notifications are handled by the incident subscription which is faster and more direct
+      // Subscription is filtered by user_id, so we only receive our own notifications
+      const record = payload.new || payload.record;
+      if (!record) return;
+      // Municipal gets alert sound ONLY when barangay requested assistance (escalation)
+      if (record.notification_type === 'escalation_request') {
+        soundAlert.playEscalationAlert();
+      }
     });
 
     // Track processed incident IDs to avoid duplicate alerts
@@ -142,22 +144,11 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
         userMunicipality: user.municipality_id
       });
       
-      // Check if this incident is relevant to the current user
+      // Barangay: sound on new incident in their barangay. Municipal: no sound on new incident (incidents still show live); sound only when barangay submits "Request Assistance".
       let shouldAlert = false;
-      
       if (user.role === 'barangay_official') {
-        // Barangay officials: alert if incident is in their barangay
         shouldAlert = incident.barangay_id && user.barangay_id && 
                      String(incident.barangay_id) === String(user.barangay_id);
-      } else if (user.role === 'municipal_admin' || user.role === 'admin' || user.role === 'super_admin') {
-        // Admins: alert if incident is in their municipality (or all for super admin)
-        shouldAlert = user.role === 'super_admin' || 
-                     (incident.municipality_id && user.municipality_id && 
-                      String(incident.municipality_id) === String(user.municipality_id));
-      } else if (user.role === 'mdrrmo') {
-        // MDRRMO: alert if incident is in their municipality
-        shouldAlert = incident.municipality_id && user.municipality_id && 
-                     String(incident.municipality_id) === String(user.municipality_id);
       }
       
       if (shouldAlert) {

@@ -410,7 +410,7 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
             </div>
           )}
 
-          {/* Request Assistance Section */}
+          {/* Request Assistance Section - Barangay only; municipal is alerted only when you escalate */}
           {canRequestAssistance() && (
             <div style={{ 
               background: 'rgba(223, 41, 53, 0.1)', 
@@ -419,9 +419,9 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
               border: '1px solid rgba(223, 41, 53, 0.3)',
               marginBottom: '2rem'
             }}>
-              <h4 style={{ marginTop: 0 }}>Request Municipal Assistance</h4>
+              <h4 style={{ marginTop: 0 }}>Request Municipal Assistance (Escalate)</h4>
               <p style={{ marginBottom: '1rem', color: 'var(--text-muted)' }}>
-                Request help from MDRRMO if you need additional support. MDRRMO will coordinate with response teams directly.
+                Need help from MDRRMO or municipal responders? Click below. <strong>Municipal is notified only when you request assistance here</strong>—not when the incident is first reported.
               </p>
               <div className="form-group">
                 <label htmlFor="assistanceReason">Reason for Assistance <span className="required">*</span></label>

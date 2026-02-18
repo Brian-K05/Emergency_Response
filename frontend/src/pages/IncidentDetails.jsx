@@ -590,7 +590,7 @@ const IncidentDetails = () => {
             </div>
           )}
 
-          {/* Request Assistance Section */}
+          {/* Request Assistance Section - Municipal is alerted only when barangay escalates */}
           {canRequestAssistance() && (
             <div style={{ 
               background: 'rgba(223, 41, 53, 0.1)', 
@@ -599,9 +599,9 @@ const IncidentDetails = () => {
               border: '1px solid rgba(223, 41, 53, 0.3)',
               marginBottom: '2rem'
             }}>
-              <h4 style={{ marginTop: 0, color: 'var(--scarlet-rush)' }}>🚨 Request Municipal Assistance</h4>
+              <h4 style={{ marginTop: 0, color: 'var(--scarlet-rush)' }}>🚨 Request Municipal Assistance (Escalate)</h4>
               <p style={{ marginBottom: '1rem', fontSize: '0.875rem' }}>
-                If you need help from municipal responders (police, fire, medical), request assistance here.
+                Need help from MDRRMO or municipal responders? <strong>Municipal is notified only when you request assistance here</strong>—not when the incident is first reported.
               </p>
               <div className="form-group">
                 <label htmlFor="assistanceMessage">Reason for Assistance <span className="required">*</span></label>
