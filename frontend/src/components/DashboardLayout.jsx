@@ -15,6 +15,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
   const { user } = useAuth();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Subscribe to notifications and play sound alerts (ONLY for barangay officials and admins, NOT residents)
   useEffect(() => {
@@ -240,6 +241,18 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
       {/* Top Navigation Bar */}
       <header className="dashboard-topbar">
         <div className="topbar-left">
+          <button
+            type="button"
+            className="topbar-menu-btn"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
           <div className="logo-section">
             <div className="logo-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -262,11 +275,26 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
         </div>
       </header>
 
-      {/* Side Navigation */}
-      <aside className="dashboard-sidebar">
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+          onKeyDown={(e) => e.key === 'Escape' && setSidebarOpen(false)}
+          role="button"
+          tabIndex={0}
+          aria-label="Close menu"
+        />
+      )}
+
+      {/* Side Navigation - slide-in on mobile when sidebarOpen */}
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-mobile-open' : ''}`}>
+        <button type="button" className="sidebar-close-btn" onClick={() => setSidebarOpen(false)} aria-label="Close menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
         <nav className="sidebar-nav">
           <button 
-            onClick={() => navigate('/dashboard')} 
+            onClick={() => { navigate('/dashboard'); setSidebarOpen(false); }} 
             className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -278,7 +306,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
           {/* Report Incident - Only for verified residents */}
           {user?.role === 'resident' && user?.verification_status === 'verified' && (
             <button 
-              onClick={() => setShowReportModal(true)} 
+              onClick={() => { setShowReportModal(true); setSidebarOpen(false); }} 
               className="nav-item nav-item-primary"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -289,7 +317,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
             </button>
           )}
           <button 
-            onClick={() => navigate('/incidents')} 
+            onClick={() => { navigate('/incidents'); setSidebarOpen(false); }} 
             className={`nav-item ${isActive('/incidents') || location.pathname.startsWith('/incidents/') ? 'active' : ''}`}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -305,7 +333,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
           {user?.role === 'super_admin' && (
             <>
               <button 
-                onClick={() => navigate('/map')} 
+                onClick={() => { navigate('/map'); setSidebarOpen(false); }} 
                 className={`nav-item ${isActive('/map') ? 'active' : ''}`}
                 title="Map view of municipalities scope"
               >
@@ -317,7 +345,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
                 <span>Map View</span>
               </button>
               <button 
-                onClick={() => navigate('/admin/create-user')} 
+                onClick={() => { navigate('/admin/create-user'); setSidebarOpen(false); }} 
                 className={`nav-item ${isActive('/admin/create-user') ? 'active' : ''}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -329,7 +357,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
                 <span>Account Creation</span>
               </button>
               <button 
-                onClick={() => navigate('/admin/accounts')} 
+                onClick={() => { navigate('/admin/accounts'); setSidebarOpen(false); }} 
                 className={`nav-item ${isActive('/admin/accounts') ? 'active' : ''}`}
                 title="View and monitor all accounts"
               >
@@ -341,7 +369,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
                 <span>Account Management</span>
               </button>
               <button 
-                onClick={() => navigate('/admin/verify-residents')} 
+                onClick={() => { navigate('/admin/verify-residents'); setSidebarOpen(false); }} 
                 className={`nav-item ${isActive('/admin/verify-residents') ? 'active' : ''}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -352,7 +380,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
                 <span>Resident Verification</span>
               </button>
               <button 
-                onClick={() => navigate('/admin/sound-alerts')} 
+                onClick={() => { navigate('/admin/sound-alerts'); setSidebarOpen(false); }} 
                 className={`nav-item ${isActive('/admin/sound-alerts') ? 'active' : ''}`}
                 title="Manage Sound Alerts"
               >
@@ -365,7 +393,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
             </>
           )}
           <button 
-            onClick={() => navigate('/notifications')} 
+            onClick={() => { navigate('/notifications'); setSidebarOpen(false); }} 
             className={`nav-item ${isActive('/notifications') ? 'active' : ''}`}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -378,7 +406,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
           {(user?.role === 'municipal_admin' || user?.role === 'admin') && (
             <>
               <button 
-                onClick={() => navigate('/admin/create-user')} 
+                onClick={() => { navigate('/admin/create-user'); setSidebarOpen(false); }} 
                 className={`nav-item ${isActive('/admin/create-user') ? 'active' : ''}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -390,7 +418,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
                 <span>Create User</span>
               </button>
               <button 
-                onClick={() => navigate('/admin/verify-residents')} 
+                onClick={() => { navigate('/admin/verify-residents'); setSidebarOpen(false); }} 
                 className={`nav-item ${isActive('/admin/verify-residents') ? 'active' : ''}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -405,7 +433,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
           {/* Map View — for municipal_admin, admin, mdrrmo (super_admin has it in block above) */}
           {(user?.role === 'admin' || user?.role === 'mdrrmo' || user?.role === 'municipal_admin') && (
             <button 
-              onClick={() => navigate('/map')} 
+              onClick={() => { navigate('/map'); setSidebarOpen(false); }} 
               className={`nav-item ${isActive('/map') ? 'active' : ''}`}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -442,6 +470,23 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
           onCancel={() => setShowReportModal(false)}
         />
       </Modal>
+
+      {/* Mobile FAB: Report Incident for verified residents - always visible on small screens */}
+      {user?.role === 'resident' && user?.verification_status === 'verified' && (
+        <button
+          type="button"
+          className="fab-report-incident"
+          onClick={() => setShowReportModal(true)}
+          aria-label="Report Incident"
+          title="Report Incident"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span className="fab-label">Report</span>
+        </button>
+      )}
     </div>
   );
 };
