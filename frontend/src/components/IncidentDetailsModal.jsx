@@ -161,7 +161,7 @@ const IncidentDetailsModal = ({ isOpen, onClose, incidentId, onUpdate }) => {
         setError('Invalid incident ID');
         return;
       }
-      const { data: rpcData, error: rpcError } = await supabase.rpc('request_municipal_assistance', {
+      const { error: rpcError } = await supabase.rpc('request_municipal_assistance', {
         p_incident_id: incidentIdNum,
         p_escalated_by: user.id,
         p_reason: updateMessage.trim()
