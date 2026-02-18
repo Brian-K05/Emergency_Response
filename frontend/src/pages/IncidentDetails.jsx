@@ -17,7 +17,6 @@ const IncidentDetails = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [updateMessage, setUpdateMessage] = useState('');
-  const [newStatus, setNewStatus] = useState('');
   const [error, setError] = useState('');
   const [responders, setResponders] = useState([]);
   const [showAssignForm, setShowAssignForm] = useState(false);
@@ -143,22 +142,15 @@ const IncidentDetails = () => {
     }
   };
 
-  const handleStatusUpdate = async () => {
-    if (!newStatus) {
-      setError('Please select a status');
-      return;
-    }
-
+  const handleSuccessfulOperation = async () => {
     try {
       setUpdating(true);
       setError('');
-      await supabaseService.updateIncidentStatus(parseInt(id), newStatus, updateMessage);
-      await fetchIncidentDetails(); // Refresh data
-      setUpdateMessage('');
-      setNewStatus('');
-      alert('Status updated successfully!');
+      await supabaseService.updateIncidentStatus(parseInt(id), 'resolved', 'Successful operation - incident resolved.');
+      await fetchIncidentDetails();
+      alert('Incident marked as resolved (Successful Operation).');
     } catch (err) {
-      setError(err.message || 'Failed to update status');
+      setError(err.message || 'Failed to mark as resolved');
     } finally {
       setUpdating(false);
     }
@@ -297,8 +289,8 @@ const IncidentDetails = () => {
     return icons[type] || '⚠️';
   };
 
-  const canUpdateStatus = () => {
-    return ['barangay_official', 'responder', 'mdrrmo', 'admin', 'municipal_admin'].includes(user?.role);
+  const canMarkSuccessfulOperation = () => {
+    return ['mdrrmo', 'municipal_admin', 'admin'].includes(user?.role);
   };
 
   const canRequestAssistance = () => {
@@ -553,46 +545,25 @@ const IncidentDetails = () => {
             )}
           </div>
 
-          {/* Status Update Section */}
-          {canUpdateStatus() && incident.status !== 'resolved' && (
+          {/* MDRRMO / Municipal: Mark as Successful Operation (Resolved) */}
+          {canMarkSuccessfulOperation() && incident.status !== 'resolved' && (
             <div style={{ 
-              background: 'var(--bg-glass)', 
+              background: 'rgba(34, 197, 94, 0.1)', 
               padding: '1.5rem', 
               borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-color)',
+              border: '1px solid rgba(34, 197, 94, 0.3)',
               marginBottom: '2rem'
             }}>
-              <h4 style={{ marginTop: 0 }}>Update Status</h4>
-              <div className="form-group">
-                <label htmlFor="newStatus">New Status</label>
-                <select
-                  id="newStatus"
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                >
-                  <option value="">Select status</option>
-                  <option value="assigned">Assigned</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="resolved">Resolved</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label htmlFor="updateMessage">Update Message (Optional)</label>
-                <textarea
-                  id="updateMessage"
-                  value={updateMessage}
-                  onChange={(e) => setUpdateMessage(e.target.value)}
-                  rows="3"
-                  placeholder="Add notes about this update..."
-                />
-              </div>
+              <h4 style={{ marginTop: 0 }}>Successful Operation</h4>
+              <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                Mark this incident as resolved when the operation is complete.
+              </p>
               <button 
-                onClick={handleStatusUpdate} 
-                disabled={updating || !newStatus}
+                onClick={handleSuccessfulOperation} 
+                disabled={updating}
                 className="btn-primary"
               >
-                {updating ? 'Updating...' : 'Update Status'}
+                {updating ? 'Updating...' : 'Successful Operation'}
               </button>
             </div>
           )}
