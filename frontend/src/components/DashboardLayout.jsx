@@ -7,6 +7,7 @@ import { shouldReceiveSoundAlerts } from '../utils/roleUtils';
 import ProfileModal from './ProfileModal';
 import Modal from './Modal';
 import IncidentReport from '../pages/IncidentReport';
+import IncidentDetailsModal from './IncidentDetailsModal';
 import soundAlert from '../utils/soundAlert';
 
 const DashboardLayout = ({ children, onReportSuccess }) => {
@@ -16,6 +17,8 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  /** When set, alert (barangay new incident or MDRRMO escalation) auto-opens incident details modal for this incident */
+  const [escalationModalIncidentId, setEscalationModalIncidentId] = useState(null);
   const playedEscalationIdsRef = useRef(new Set());
 
   // Subscribe to notifications and play sound alerts (ONLY for barangay officials and admins, NOT residents)
@@ -47,6 +50,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
             if (notification && notification.notification_type === 'escalation_request' && notification.id && !playedEscalationIdsRef.current.has(notification.id)) {
               playedEscalationIdsRef.current.add(notification.id);
               soundAlert.playEscalationAlert();
+              if (notification.incident_id) setEscalationModalIncidentId(notification.incident_id);
               break; // play once
             }
           }
@@ -66,11 +70,14 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
       // Municipal gets alert sound ONLY when barangay requested assistance (escalation)
       if (record.notification_type === 'escalation_request') {
         const nid = record.id;
+        const incidentId = record.incident_id;
         if (nid && !playedEscalationIdsRef.current.has(nid)) {
           playedEscalationIdsRef.current.add(nid);
           soundAlert.playEscalationAlert();
+          if (incidentId) setEscalationModalIncidentId(incidentId);
         } else if (!nid) {
           soundAlert.playEscalationAlert();
+          if (incidentId) setEscalationModalIncidentId(incidentId);
         }
       }
     });
@@ -153,6 +160,8 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
         console.log('✅ Incident is relevant to user, playing emergency alert IMMEDIATELY');
         // Play emergency alert immediately (don't wait for notification)
         soundAlert.playEmergencyAlert();
+        // Auto-open incident details modal so barangay official sees the emergency
+        setEscalationModalIncidentId(incident.id);
       } else {
         console.log('ℹ️ Incident not relevant to current user, skipping alert');
       }
@@ -213,6 +222,7 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
           if (n.notification_type === 'escalation_request' && n.id && !playedEscalationIdsRef.current.has(n.id)) {
             playedEscalationIdsRef.current.add(n.id);
             soundAlert.playEscalationAlert();
+            if (n.incident_id) setEscalationModalIncidentId(n.incident_id);
             break; // play once per poll
           }
         }
@@ -502,6 +512,14 @@ const DashboardLayout = ({ children, onReportSuccess }) => {
       <ProfileModal 
         isOpen={showProfileModal} 
         onClose={() => setShowProfileModal(false)} 
+      />
+
+      {/* Alert pop-up: barangay (new incident in their area) or MDRRMO (escalation request) — incident details modal opens so they see the emergency */}
+      <IncidentDetailsModal
+        isOpen={!!escalationModalIncidentId}
+        onClose={() => setEscalationModalIncidentId(null)}
+        incidentId={escalationModalIncidentId}
+        onUpdate={() => {}}
       />
 
       {/* Incident Report Modal - Always Available */}
